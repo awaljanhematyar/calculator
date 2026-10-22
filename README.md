@@ -4,6 +4,8 @@ Four-operation JavaScript calculator with arithmetic precedence, decimal support
 
 Part of my JavaScript practice work. Explore my complete projects on [GitHub](https://github.com/awaljanhematyar) or my [developer portfolio](https://hematyar-professional-portfolio.vercel.app/).
 
+[Live demo](https://awaljanhematyar.github.io/calculator/)
+
 ## Features
 
 - Add, subtract, multiply and divide with normal precedence.
