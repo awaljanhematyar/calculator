@@ -1,47 +1,59 @@
-// Select all buttons inside .buttons
-const btn = document.querySelectorAll(".buttons button");
-
-// Select the input/screen where numbers show
+// Four-operation calculator. Parse arithmetic only; never execute input as JavaScript.
 const input = document.getElementById("result");
+const buttons = document.querySelectorAll(".buttons button");
 
-// Select the DEL button specifically
-const delbtn = document.querySelector(".del");
-
-// Loop through every button
-for (let i = 0; i < btn.length; i++) {
-  // Listen for click on each button
-  btn[i].addEventListener("click", (e) => {
-    // Get the text of the clicked button (e.g "5", "+", "=")
-    const buttonValue = btn[i].textContent;
-
-    if (buttonValue === "c") {
-      clearResult(); // Clear the screen
-    } else if (buttonValue === "Del") {
-      deletLast(); // Remove last character
-    } else if (buttonValue === "=") {
-      calculatResult(); // Calculate the result
-    } else {
-      appendValue(buttonValue); // Add button value to screen
+function evaluateExpression(expression) {
+  const text = expression.replace(/\s+/g, "");
+  let position = 0;
+  function number() {
+    let sign = 1;
+    while (text[position] === "+" || text[position] === "-") {
+      if (text[position++] === "-") sign *= -1;
     }
-  });
+    const match = text.slice(position).match(/^(?:\d+(?:\.\d*)?|\.\d+)/);
+    if (!match) throw new Error("Invalid expression");
+    position += match[0].length;
+    return sign * Number(match[0]);
+  }
+  function product() {
+    let value = number();
+    while (text[position] === "*" || text[position] === "/") {
+      const operator = text[position++];
+      const right = number();
+      if (operator === "/" && right === 0) throw new Error("Cannot divide by zero");
+      value = operator === "*" ? value * right : value / right;
+    }
+    return value;
+  }
+  function sum() {
+    let value = product();
+    while (text[position] === "+" || text[position] === "-") {
+      const operator = text[position++];
+      const right = product();
+      value = operator === "+" ? value + right : value - right;
+    }
+    return value;
+  }
+  const value = sum();
+  if (position !== text.length || !Number.isFinite(value)) throw new Error("Invalid result");
+  return Number(value.toPrecision(12));
 }
 
-// Clear the screen
-function clearResult() {
-  input.value = "";
+function clearResult() { input.value = ""; }
+function deletLast() { input.value = input.value === "Error" ? "" : input.value.slice(0, -1); }
+function appendValue(value) {
+  if (input.value === "Error") input.value = "";
+  input.value += value;
 }
-
-// Calculate and show result
 function calculatResult() {
-  input.value = eval(input.value);
+  if (!input.value.trim()) return;
+  try { input.value = String(evaluateExpression(input.value)); }
+  catch { input.value = "Error"; }
 }
-
-// Delete last character
-function deletLast() {
-  input.value = input.value.slice(0, -1);
-}
-
-// Add value to the screen
-function appendValue(buttonValue) {
-  input.value += buttonValue;
-}
+buttons.forEach((button) => button.addEventListener("click", () => {
+  const value = button.textContent.trim();
+  if (value === "c") clearResult();
+  else if (value === "Del") deletLast();
+  else if (value === "=") calculatResult();
+  else appendValue(value);
+}));
